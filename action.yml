@@ -1,0 +1,26 @@
+name: WorkflowKeepAliveByGhEnable
+description: >-
+  Keep workflows of repository alive (prevent GitHub from disabling scheduled workflows).
+  Do a "gh api -X PUT "repos/.../enable" for every workflow of the repository.
+branding:
+  icon: activity
+  color: red
+runs:
+  using: composite
+  steps:
+    - name: Clone the repository
+      uses: actions/checkout@v4
+      with:
+        ref: '${{ github.head_ref }}'
+    - name: (Re-)enable all workflows
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        #set -x on
+        #set -v
+        for i in .github/workflows/*.y*ml; do
+          workflow="${i#.github/workflows/}"
+          echo "Enable: $workflow"
+          gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow}/enable"
+        done
